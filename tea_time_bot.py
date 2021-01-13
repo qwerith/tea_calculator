@@ -22,10 +22,9 @@ user_params = {}
 #start message
 @bot.message_handler(commands=['start','help','hello','hey'])
 def welcome(message):
-    global user_params
     if message.chat.id not in user_params:
-        chat_id = {'cup_radius' : 0, 'water_weight' : 0,'switch_val' : 0}
-        user_params.update({message.chat.id : chat_id})
+        chat_val = {'cup_radius' : 0, 'water_weight' : 0,'switch_val' : 0}
+        user_params.update({message.chat.id : chat_val})
         print(user_params)
     
     #inline button
