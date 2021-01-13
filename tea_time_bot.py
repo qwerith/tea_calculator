@@ -14,42 +14,21 @@ def read_token(config):
 token1 = read_token("config.cfg")
 bot = telebot.TeleBot(token = token1)
 
+
 #user data storage
-class User():
-
-    def __init__(self, chat_id, cup_radius, water_weight):
-        self.chat_id = chat_id
-        self.cup_radius = cup_radius
-        self.water_weight = water_weight
-    
-    def get_id(self):
-        return self.chat_id
-    
-    def get_radius(self):
-        return self.cup_radius
-    
-    def update_radius(self, new_radius):
-        self.cup_radius = new_radius
-    
-    def get_weight(self):
-        return self.water_weight
-    
-    def update_weight(self, new_weight):
-        self.water_weight = new_weight
-
-
-#global var's
-chat_id = None
 user_params = {}
-item = None
-markup = None
+
 
 #start message
 @bot.message_handler(commands=['start','help','hello','hey'])
 def welcome(message):
+    global user_params
+    if message.chat.id not in user_params:
+        chat_id = {'cup_radius' : 0, 'water_weight' : 0,'switch_val' : 0}
+        user_params.update({message.chat.id : chat_id})
+        print(user_params)
+    
     #inline button
-    global item
-    global markup
     markup = types.InlineKeyboardMarkup(row_width=2)
     item = types.InlineKeyboardButton('Tea time', callback_data='launch')
     markup.add(item)
@@ -62,7 +41,8 @@ def callback_inline(call):
     try:
         if call.data == 'launch':
             bot.send_message(call.message.chat.id, "Enter teacup radius in centimetres")
-            
+            user_params[call.message.chat.id].update({'switch_val':1})
+            print(user_params)
         
     except Exception as e:
         print(repr(e))
@@ -70,51 +50,59 @@ def callback_inline(call):
 #message send-recive
 @bot.message_handler(content_types=["text"])
 def get_input_from_user(message):
-    global chat_id
-    if float(message.text.replace(',', '.')) > 0:
-        msg = float(message.text.replace(',', '.'))
+    if message.chat.id in user_params and user_params[message.chat.id]['switch_val'] == 1:
         try:
-            if message.chat.id not in user_params:
-                user_params.update({message.chat.id : 0})
-                chat_id = message.chat.id
-                chat_id = User(chat_id, 0, 0)
+            if float(message.text.replace(',', '.')) > 0:
+                msg = float(message.text.replace(',', '.'))   
             else:
-                cup = user_params[message.chat.id]
-                chat_id = User(message.chat.id, cup, 0)
-            
-            if chat_id.get_radius() == 0:
+                bot.send_message(message.chat.id, "Input must be a positive numeric value")
+        
+        except ValueError:
+            print('value error')
+        
+        try:
+            chat_id = message.chat.id
+            if user_params[chat_id]['cup_radius'] == 0:
                 msg = msg / 100
-                chat_id.update_radius(msg)
-                user_params.update({message.chat.id: msg})
+                user_params[chat_id].update({'cup_radius' : msg})
                 bot.send_message(message.chat.id, "Enter amount of water in milliliters")
                 print(user_params.keys())
-                print(chat_id.get_radius())
+                print(user_params[chat_id]['cup_radius'])
             
             else:
-                cup = user_params[message.chat.id]
-                chat_id = User(message.chat.id, cup, 0)
                 msg = msg / 1000
-                chat_id.update_weight(msg)
-                resault = calculate_tea_cooldown_time(chat_id.get_radius(), chat_id.get_weight())
+                user_params[chat_id].update({'water_weight' : msg})
+                resault = calculate_tea_cooldown_time(user_params[chat_id]['cup_radius'], user_params[chat_id]['water_weight'])
                 bot.send_message(message.chat.id, "Tea temperature gonna be optimal in:\n{:.0f} seconds".format(resault))
                 print(resault)
-                chat_id.update_radius(0)
-                user_params.update({message.chat.id: 0})
+                #switch values to stock
+                user_params[chat_id].update({'cup_radius' : 0})
+                user_params[chat_id].update({'water_weight': 0})
+                user_params[chat_id].update({'switch_val' : 0})
                 #inline button
+                markup = types.InlineKeyboardMarkup(row_width=2)
+                item = types.InlineKeyboardButton('Tea time', callback_data='launch')
+                markup.add(item)
                 bot.send_message(message.chat.id, 'Push the button to start',
                 parse_mode='html', reply_markup=markup)
 
         except:
             if message.text != '/stop':
                 bot.send_message(message.chat.id, "Input value error occured, try again")
-                chat_id.update_radius(0)
-                user_params.update({message.chat.id: 0})
+                print('error marker')
+                #switch values to stock
+                user_params[chat_id].update({'cup_radius' : 0})
+                user_params[chat_id].update({'water_weight': 0})
+                user_params[chat_id].update({'switch_val' : 0})
                 #inline button
+                markup = types.InlineKeyboardMarkup(row_width=2)
+                item1 = types.InlineKeyboardButton('Tea time', callback_data='launch')
+                markup.add(item1)
                 bot.send_message(message.chat.id, 'Push the button to start',
                 parse_mode='html', reply_markup=markup)
-    
     else:
-        bot.send_message(message.chat.id, "Input must be a positive numeric value")
+        print('error marker1')
+    
 
 #run
 if __name__ == '__main__':
