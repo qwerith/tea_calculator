@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import time
+import emoji
 import configparser as cfg
 import telebot
 from telebot import types
 from teatime import calculate_tea_cooldown_time
+from emoji import emojize
+
 
 #token reading
 def read_token(config):
@@ -29,7 +31,7 @@ def welcome(message):
     
     #inline button
     markup = types.InlineKeyboardMarkup(row_width=2)
-    item = types.InlineKeyboardButton('Tea time', callback_data='launch')
+    item = types.InlineKeyboardButton('Tea time {}'.format('🍵'), callback_data='launch')
     markup.add(item)
     bot.send_message(message.chat.id, "Welcome, {0.first_name}!\nThis bot calculates time needed for your tea, to cool down to the optimal temperature.\nPush the button to start".format(message.from_user),
     parse_mode='html', reply_markup=markup)
@@ -72,15 +74,17 @@ def get_input_from_user(message):
                 msg = msg / 1000
                 user_params[chat_id].update({'water_weight' : msg})
                 resault = calculate_tea_cooldown_time(user_params[chat_id]['cup_radius'], user_params[chat_id]['water_weight'])
-                bot.send_message(message.chat.id, "Tea temperature gonna be optimal in:\n{:.0f} seconds".format(resault))
                 print(resault)
+                m, s = divmod(resault, 60)
+                print(resault / 60)
+                bot.send_message(message.chat.id, "Tea temperature gonna be optimal in:\n minutes {:.0f} and {:.0f} seconds".format(m, s))
                 #switch values to stock
                 user_params[chat_id].update({'cup_radius' : 0})
                 user_params[chat_id].update({'water_weight': 0})
                 user_params[chat_id].update({'switch_val' : 0})
                 #inline button
                 markup = types.InlineKeyboardMarkup(row_width=2)
-                item = types.InlineKeyboardButton('Tea time', callback_data='launch')
+                item = types.InlineKeyboardButton('Tea time {}'.format('🍵'), callback_data='launch')
                 markup.add(item)
                 bot.send_message(message.chat.id, 'Push the button to start',
                 parse_mode='html', reply_markup=markup)
@@ -95,7 +99,7 @@ def get_input_from_user(message):
                 user_params[chat_id].update({'switch_val' : 0})
                 #inline button
                 markup = types.InlineKeyboardMarkup(row_width=2)
-                item1 = types.InlineKeyboardButton('Tea time', callback_data='launch')
+                item1 = types.InlineKeyboardButton('Tea time {}'.format('🍵'), callback_data='launch')
                 markup.add(item1)
                 bot.send_message(message.chat.id, 'Push the button to start',
                 parse_mode='html', reply_markup=markup)
