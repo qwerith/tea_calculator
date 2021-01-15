@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-import emoji
 import configparser as cfg
 import telebot
 from telebot import types
 from teatime import calculate_tea_cooldown_time
-from emoji import emojize
 
 
 #token reading
@@ -77,7 +75,11 @@ def get_input_from_user(message):
                 print(resault)
                 m, s = divmod(resault, 60)
                 print(resault / 60)
-                bot.send_message(message.chat.id, "Tea temperature gonna be optimal in:\n minutes {:.0f} and {:.0f} seconds".format(m, s))
+                if resault >= 60:
+                    bot.send_message(message.chat.id, "Tea temperature gonna be optimal in:\n minutes {:.0f} and {:.0f} seconds".format(m, s))
+
+                else:
+                    bot.send_message(message.chat.id, "Tea temperature gonna be optimal in:\n {:.0f} seconds".format(resault))
                 #switch values to stock
                 user_params[chat_id].update({'cup_radius' : 0})
                 user_params[chat_id].update({'water_weight': 0})
