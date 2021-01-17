@@ -1,0 +1,1 @@
+web: gunicorn app:tea_temp_bot.py
