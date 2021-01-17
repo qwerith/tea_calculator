@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import os
 import configparser as cfg
 import telebot
 from telebot import types
 from teatime import calculate_tea_cooldown_time
+from flask import Flask, request
 
 
 #token reading
@@ -12,7 +14,8 @@ def read_token(config):
     return parser.get('creds', 'token')
 
 token1 = read_token("config.cfg")
-bot = telebot.TeleBot(token = token1)
+bot = telebot.TeleBot(token=token1)
+server = Flask(__name__)
 
 
 #user data storage
@@ -33,7 +36,20 @@ def welcome(message):
     markup.add(item)
     bot.send_message(message.chat.id, "Welcome, {0.first_name}!\nThis bot calculates time needed for your tea, to cool down to the optimal temperature.\nPush the button to start".format(message.from_user),
     parse_mode='html', reply_markup=markup)
-    
+
+#web
+@server.route('/' + token1, methods=['POST'])
+def getMessage():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return "!", 200
+
+
+@server.route("/")
+def webhook():
+    bot.remove_webhook()
+    bot.set_webhook(url='https://tea-bot-tg.herokuapp.com/' + token1)
+    return "!", 200
+
 #callback
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
@@ -111,6 +127,6 @@ def get_input_from_user(message):
 
 #run
 if __name__ == '__main__':
-     bot.polling(none_stop=True)
+    server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
 
          
