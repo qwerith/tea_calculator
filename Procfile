@@ -1,1 +1,1 @@
-web: gunicorn app:tea_temp_bot.py
+web: python tea_time_bot.py

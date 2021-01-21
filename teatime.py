@@ -1,7 +1,7 @@
 from math import pi
 
 
-def calculate_tea_cooldown_time(cup_radius: float, water_weight: float) -> float:
+def calculate_tea_cooldown_time(cup_radius: float, water_weight: float, preferred_temp: float) -> float:
     """
     Function to calculate time, when water in a cup reaches desired temperature
 
@@ -13,7 +13,7 @@ def calculate_tea_cooldown_time(cup_radius: float, water_weight: float) -> float
     """
     c_water = 4218  # J / (kg * K) - thermal conductivity of water
     tea_temp = 100  # temperature of tea in a cup
-    target_temp = 50  # target tea temperature (you can change to your desired)
+    target_temp = preferred_temp  # target tea temperature (you can change to your desired)
     # energy difference, that is produced from cooling from tea_temp to target_temp (100 degrees to 50 degress here)
     Q1 = c_water * water_weight * (tea_temp - target_temp)
     water_surface_area = pi * cup_radius * cup_radius  # surface area
